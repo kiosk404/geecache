@@ -1,5 +1,7 @@
 package geecache
 
+// 实际的需要被缓存的对象
+
 // A ByteView holds an immutable view of bytes.
 type ByteView struct {
 	b []byte

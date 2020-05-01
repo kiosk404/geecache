@@ -22,7 +22,7 @@ var db = map[string]string{
 }
 
 func createGroup() *geecache.Group {
-	return geecache.NewGroup("scores", 2<<10, geecache.GetterFunc(
+	return geecache.NewGroup("MyCache", 2<<10, geecache.GetterFunc(
 		func(key string) ([]byte, error) {
 			log.Println("[SlowDB] search key", key)
 			if v, ok := db[key]; ok {
@@ -50,7 +50,7 @@ func startAPIServer(apiAddr string, gee *geecache.Group) {
 				return
 			}
 			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Write(view.ByteSlice())
+			_, _ = w.Write(view.ByteSlice())
 
 		}))
 	log.Println("fontend server is running at", apiAddr)
@@ -82,5 +82,5 @@ func main() {
 	if api {
 		go startAPIServer(apiAddr, gee)
 	}
-	startCacheServer(addrMap[port], []string(addrs), gee)
+	startCacheServer(addrMap[port], addrs, gee)
 }

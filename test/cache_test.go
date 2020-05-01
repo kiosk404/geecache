@@ -1,4 +1,4 @@
-package cache
+package test
 
 import (
 	"testing"
@@ -34,6 +34,9 @@ func Test_Concurrent(t *testing.T) {
 }
 
 
+func Test_Core(t *testing.T) {
+	fmt.Println(2<<10)
+}
 
 
 

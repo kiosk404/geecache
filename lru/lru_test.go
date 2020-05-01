@@ -1,8 +1,8 @@
 package lru
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 )
 
 type String string

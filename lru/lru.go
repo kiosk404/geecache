@@ -6,16 +6,16 @@ import (
 
 // Cache is LRU cache, It is not safe for concurrent access 
 type Cache struct {
-	maxBytes int64   // 最大使用内存
-	nBytes 	int64        //  当前已使用内存
-	ll *list.List   
-	cache  map[string]*list.Element   //双链表对应节点的指针
+	maxBytes int64        // 最大使用内存
+	nBytes 	 int64        // 当前已使用内存
+	ll *list.List         // 链表
+	cache  map[string]*list.Element   //节点放到字典中，加速查找
 	// option and executed when an entry is purged
     OnEvicted  func(key string, value Value)   //某条记录被删除时候的回调函数
 }
 
-type entry struct {
-	key string
+type entry struct {    // 实际内容
+	key   string
 	value Value
 }
 
@@ -25,7 +25,7 @@ type Value interface {
 }
 
 // New is the Constructor of cache
-func New(maxBytes int64, OnEvicted func(string,Value)) *Cache {
+func New(maxBytes int64, OnEvicted func(string, Value)) *Cache {
 	return &Cache{
 		maxBytes: maxBytes,
 		ll: list.New(),
@@ -49,10 +49,10 @@ func (c *Cache) Get(key string) (value Value,ok bool) {
 func (c *Cache) RemoveOldest() {
 	ele := c.ll.Back()    // 找到队尾，删除	
 	if ele != nil {
-		c.ll.Remove(ele) 
+		c.ll.Remove(ele)   // 从链表中删除  
 		kv := ele.Value.(*entry)
-		delete(c.cache, kv.key)   // 删除 该节点的 映射关系
-		c.nBytes -= int64(len(kv.key)) + int64(kv.value.Len())
+		delete(c.cache, kv.key)   // 从字典中删除
+		c.nBytes -= int64(len(kv.key)) + int64(kv.value.Len())  // 存储大小减去该节点的 k v 所占用的内存
 		if c.OnEvicted != nil {
 			c.OnEvicted(kv.key, kv.value)
 		}
@@ -64,8 +64,8 @@ func (c *Cache) Add(key string, value Value) {
 	if ele, ok := c.cache[key];ok {   // 若存在，则更新对应节点的值，并移动到最前方，更新节点内容
 		c.ll.MoveToFront(ele)
 		kv := ele.Value.(*entry)
-		c.nBytes += int64(value.Len()) - int64(kv.value.Len())
-		kv.value = value
+		c.nBytes += int64(value.Len()) + int64(kv.value.Len())   // 更新长度
+		kv.value = value    // 更新节点内容
 		return
 	}
     // 若不存在则添加
@@ -73,7 +73,7 @@ func (c *Cache) Add(key string, value Value) {
 	c.cache[key] = ele
 	c.nBytes += int64(len(key)) + int64(value.Len())
 
-	// 若内存不够，需要删除掉最老的
+	// 若内存不够，需要循环删除掉最老的
 	for c.maxBytes != 0 && c.maxBytes < c.nBytes {
 		c.RemoveOldest()
 	}

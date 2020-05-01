@@ -75,7 +75,7 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Write(body)
+	_, _ = w.Write(body)
 }
 
 // Set updates the pool's list of peers.
@@ -106,6 +106,7 @@ var _ PeerPicker = (*HTTPPool)(nil)
 type httpGetter struct {
 	baseURL string
 }
+
 
 func (h *httpGetter) Get(in *pb.Request, out *pb.Response) error {
 	u := fmt.Sprintf(
