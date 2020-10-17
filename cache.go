@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+// lru 中里存在大量的字典的操作,在高并发环境中需要考虑锁的实现,所以这里再封装一层
+
 type cache struct {
 	mu         sync.Mutex
 	lru        *lru.Cache
